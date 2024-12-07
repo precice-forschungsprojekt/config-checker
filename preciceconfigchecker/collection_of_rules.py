@@ -3,40 +3,45 @@ from rule import Rule
 from typing import List
 
 
-# methods for checking rules
+# Methods for checking rules.
+# Methods must return a bool value!
 # just testing... ignore it!!!
-def testfunc(edges:List[int]):
-    a:int = 0
-    for i in range(0, 20000000):
-        a += 1
-    edges.clear()
-    return False
+def exists_edges(edges:List[int]):
+    testList:List[int] = [1,2,3,4,5,6]
+    for edge in edges:
+        if not (testList.__contains__(edge)):
+            return False
+    return True
 
 # just testing... ignore it!!!
-def testfunc2(a, b):
-    print("rule is followed!")
+def exists_nodes(nodes:List[int]):
+    nodes.clear()
     return True
+
+# just testing... ignore it!!!
+def other_test(a, b, c):
+    return (a + b) * c
 
 
 class CollectionOfRules:
-    # rule, method for rule, arguments for method
+    # 3-tuples (rule, method for rule, arguments[] for method)
+    # Template: (Rule("problem", Severity.INFO, "possible solutions"), myfunc, [])
     rules = [
-        [Rule(message="test"), testfunc, [[1,2,3]]],# just testing... ignore it!!!
-        [Rule(Severity.INFO, "Nope", "You can't do that!"), testfunc, [[4,5,6]]],# just testing... ignore it!!!
-        [Rule(Severity.WARNING, "NOOOOOPE!!!", "What's your problem?", "fuck off"), testfunc, [[7,8,9]]],# just testing... ignore it!!!
-        [Rule(Severity.INFO, "test right", "just testing with true output", "nothing"), testfunc2, [10,33]]# just testing... ignore it!!!
+        (Rule("Problem 1"), exists_edges, [[1,2,3]]),# just testing... ignore it!!!
+        (Rule("Problem 2", Severity.INFO), exists_edges, [[4,5,6]]),# just testing... ignore it!!!
+        (Rule("Problem 3", Severity.WARNING, "More testing!"), exists_edges, [[7,8,9]]),# just testing... ignore it!!!
+        (Rule("Problem 4", Severity.INFO, "nothing!"), exists_nodes, [[10,33]]),# just testing... ignore it!!!
+        (Rule("Problem 5", Severity.WARNING, "Just fix it!"), other_test, [4, 6, 100])# just testing... ignore it!!!
     ]
 
     results:List[str] = []
     
     def check_all_rules(self) -> None:
-        for r in self.rules:
-            rule:Rule = r[0]
-            method = r[1]
-            arguments = r[2]
+        rule:Rule
+        for (rule, method, arguments) in self.rules:
             rule.check_with(method, arguments)
-            result:str = rule.get_result()
-            if (len(result) > 0):
+            if not rule.has_followed():
+                result:str = rule.get_result()
                 self.results.append(result)
 
     def print_result(self) -> None:
