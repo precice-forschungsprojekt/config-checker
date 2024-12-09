@@ -1,4 +1,6 @@
 from enum import Enum
+from typing import List, Callable
+from violation import Violation, Problem
 
 
 class Severity(Enum):
@@ -7,31 +9,24 @@ class Severity(Enum):
 
 
 class Rule:
-    severity:Severity
-    name:str
-    message:str
-    possible_solutions:str
-    followed:bool = True
-    numbers_not_followed:int = 0
-
-    def __init__(self, severity:Severity = Severity.INFO, name:str = "Rule", message:str = "", possible_solutions:str = "") -> None:
+    def __init__(self, problem:Problem, severity:Severity = Severity.INFO) -> None:
+        self.problem = problem
         self.severity = severity
-        self.name = name
-        self.message = message
-        self.possible_solutions = possible_solutions
+        self.violations:List[Violation] = []
 
-    def check_with(self, check_method, args) -> None:
-        result = check_method(*args)
-        if type(result) is not bool:
-            print("Error : The passed method does not return a bool value!")
-        else:
-            self.followed = result
+    def check_with(self, check_method:Callable, args:tuple) -> None:
+        result:List = check_method(*args)
+        for data in result:
+            violation = Violation(self.problem, data)
+            self.violations.append(violation)
+
+    def has_followed(self) -> bool:
+        return (len(self.violations) == 0)
 
     def get_result(self) -> str:
-        if (self.followed):
+        if self.has_followed():
             return ""
-        Rule.numbers_not_followed += 1
-        out:str = f"[{Rule.numbers_not_followed:2}.]" + "[" + self.severity.value + "][" + self.name + "] : " + self.message
-        if (len(self.possible_solutions) > 0):
-            out += "\n\t[Possible Solution] : " + self.possible_solutions
+        out:str = "[" + self.severity.value + "]: " + self.problem.value
+        for violation in self.violations:
+            out += violation.get_output()
         return out
