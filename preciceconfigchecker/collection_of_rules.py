@@ -1,44 +1,27 @@
-from rule import Severity
 from rule import Rule
-from typing import List
+from severity import Severity
+from violation import Problem
+from typing import Callable, List
 
 
-# methods for checking rules
-# just testing... ignore it!!!
-def testfunc(edges:List[int]):
-    a:int = 0
-    for i in range(0, 20000000):
-        a += 1
-    edges.clear()
-    return False
-
-# just testing... ignore it!!!
-def testfunc2(a, b):
-    print("rule is followed!")
-    return True
+# Methods for checking rules.
+# Methods must return a bool value!
 
 
-class CollectionOfRules:
-    # rule, method for rule, arguments for method
-    rules = [
-        [Rule(message="test"), testfunc, [[1,2,3]]],# just testing... ignore it!!!
-        [Rule(Severity.INFO, "Nope", "You can't do that!"), testfunc, [[4,5,6]]],# just testing... ignore it!!!
-        [Rule(Severity.WARNING, "NOOOOOPE!!!", "What's your problem?", "fuck off"), testfunc, [[7,8,9]]],# just testing... ignore it!!!
-        [Rule(Severity.INFO, "test right", "just testing with true output", "nothing"), testfunc2, [10,33]]# just testing... ignore it!!!
-    ]
+# 3-tuples (rule, method for rule, arguments[] for method)
+# Template: (Problem.DATA_NOT_USED, Severity.INFO), myfunc, [])
+rules:tuple[Rule, Callable, tuple] = [
+]
 
-    results:List[str] = []
-    
-    def check_all_rules(self) -> None:
-        for r in self.rules:
-            rule:Rule = r[0]
-            method = r[1]
-            arguments = r[2]
-            rule.check_with(method, arguments)
+results:List[str] = []
+
+def check_all_rules() -> None:
+    for (rule, method, arguments) in rules:
+        rule.check_with(method, arguments)
+        if not rule.has_followed():
             result:str = rule.get_result()
-            if (len(result) > 0):
-                self.results.append(result)
+            results.append(result)
 
-    def print_result(self) -> None:
-        for result in self.results:
-            print(result)
+def print_result() -> None:
+    for result in results:
+        print(result)
