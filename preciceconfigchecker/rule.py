@@ -1,37 +1,33 @@
-from enum import Enum
+from typing import List
+from abc import ABC, abstractmethod
+from violation import Violation
+from severity import Severity
 
 
-class Severity(Enum):
-    INFO = "Info"
-    WARNING = "Warning"
+class Rule(ABC):
+    @property
+    @abstractmethod
+    def problem(self) -> str: pass
+    @property
+    @abstractmethod
+    def severity(self) -> Severity: pass
 
+    violations:List[Violation] = []
 
-class Rule:
-    severity:Severity
-    name:str
-    message:str
-    possible_solutions:str
-    followed:bool = True
-    numbers_not_followed:int = 0
+    complete_output:str = ""
 
-    def __init__(self, severity:Severity = Severity.INFO, name:str = "Rule", message:str = "", possible_solutions:str = "") -> None:
-        self.severity = severity
-        self.name = name
-        self.message = message
-        self.possible_solutions = possible_solutions
+    @abstractmethod
+    def check(self) -> None: pass
 
-    def check_with(self, check_method, args) -> None:
-        result = check_method(*args)
-        if type(result) is not bool:
-            print("Error : The passed method does not return a bool value!")
-        else:
-            self.followed = result
+    def satisfied(self) -> bool:
+        return (len(self.violations) == 0)
 
-    def get_result(self) -> str:
-        if (self.followed):
-            return ""
-        Rule.numbers_not_followed += 1
-        out:str = f"[{Rule.numbers_not_followed:2}.]" + "[" + self.severity.value + "][" + self.name + "] : " + self.message
-        if (len(self.possible_solutions) > 0):
-            out += "\n\t[Possible Solution] : " + self.possible_solutions
-        return out
+    def collect_output(self) -> None:
+        if self.satisfied():
+            return
+        out:str = "[" + self.severity.value + "]: " + self.problem
+        for violation in self.violations:
+            out += violation.create_output()
+        if (len(Rule.complete_output) > 0):
+            out = "\n" + out
+        Rule.complete_output += out
