@@ -2,34 +2,6 @@ from typing import List
 from rule import Rule
 from severity import Severity
 
-# Handling the collection
-rules:List[Rule] = []
-"""List of all initialized rules"""
-
-def check_all_rules() -> None:
-    """
-    Checks all rules for violations
-    """
-    for rule in rules:
-        rule.check()
-
-def format_all_results() -> None:
-    """
-    Formats the existing violations for all rules
-    """
-    for rule in rules:
-        if not rule.satisfied():
-            rule.format_result()
-
-def print_all_results() -> None:
-    """
-    Prints all existing formatted violations of all rules
-    """
-    for rule in rules:
-        if rule.can_print():
-            rule.print_result()
-
-
 # Implementation of the rule classes and initialization of these objects
 # Example 1
 class Rule_1(Rule):
@@ -50,7 +22,7 @@ class Rule_1(Rule):
         possible_solutions.append(f"Connect {node_a} and {node_b}")
         return possible_solutions
     
-rules.append(Rule_1(Severity.INFO, "No connection between two nodes"))
+Rule_1(Severity.INFO, "No connection between two nodes")
 
 # Example 2
 class Rule_2(Rule):
@@ -73,7 +45,7 @@ class Rule_2(Rule):
         possible_solutions.append(f"Connect {node_a} and {node_b} and {node_a} and {node_c}")
         return possible_solutions
     
-rules.append(Rule_2(Severity.WARNING, "No connection between three nodes"))
+Rule_2(Severity.WARNING, "No connection between three nodes")
 
 # Example 3
 class Rule_3(Rule):
@@ -90,4 +62,4 @@ class Rule_3(Rule):
         possible_solutions.append(f"Delete {node_a}")
         return possible_solutions
 
-rules.append(Rule_3(Severity.ERROR, "A node is not connected"))
+Rule_3(Severity.ERROR, "A node is not connected")

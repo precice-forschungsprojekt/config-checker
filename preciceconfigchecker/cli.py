@@ -1,7 +1,8 @@
 import sys
 from precice_config_graph import graph, xml_processing
 from pyprecice import Participant
-from collection_of_rules import check_all_rules, format_all_results, print_all_results
+from rule import check_all_rules, format_all_results, print_all_results
+import collection_of_rules
 
 if __name__ == "__main__":
     path = sys.argv[1]

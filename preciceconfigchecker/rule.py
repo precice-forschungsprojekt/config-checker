@@ -24,6 +24,7 @@ class Rule(ABC):
         self.rule:str
         self.formatted_violations:List[str] = []
         self.violations:List[tuple] = []
+        rules.append(self)
 
     @abstractmethod
     def check_method(self) -> List[tuple]:
@@ -119,3 +120,33 @@ class Rule(ABC):
         print(self.rule)
         for violation in self.formatted_violations:
             print(violation)
+
+
+
+# To handle all the rules
+
+rules:List[Rule] = []
+"""List of all initialized rules"""
+
+def check_all_rules() -> None:
+    """
+    Checks all rules for violations
+    """
+    for rule in rules:
+        rule.check()
+
+def format_all_results() -> None:
+    """
+    Formats the existing violations for all rules
+    """
+    for rule in rules:
+        if not rule.satisfied():
+            rule.format_result()
+
+def print_all_results() -> None:
+    """
+    Prints all existing formatted violations of all rules
+    """
+    for rule in rules:
+        if rule.can_print():
+            rule.print_result()
