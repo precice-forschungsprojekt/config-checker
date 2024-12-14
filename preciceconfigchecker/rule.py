@@ -8,7 +8,7 @@ class Rule(ABC):
     Abstract Class 'Rule'. Checking a 'Rule' for violations and producing formatted output.
     """
 
-    numbers:int = 0
+    violation_counter:int = 0
     """Static Attribute: Do not use 'self.numbers', use 'Rule.numbers'"""
 
     def __init__(self, severity:Severity, problem:str) -> None:
@@ -95,8 +95,8 @@ class Rule(ABC):
         for data in self.violations:
             explanation:str = self.format_explanation(*data)
             possible_solutions:List[str] = self.format_possible_solutions(*data)
-            Rule.numbers += 1
-            violation:str = f"({Rule.numbers:3}.): {explanation}"
+            Rule.violation_counter += 1
+            violation:str = f"({Rule.violation_counter:3}.): {explanation}"
             for possible_solution in possible_solutions:
                 violation += f"\n\t- {possible_solution}"
             self.formatted_violations.append(violation)
