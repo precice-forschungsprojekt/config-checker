@@ -126,7 +126,7 @@ class Rule(ABC):
 # To handle all the rules
 
 rules:List[Rule] = []
-"""List of all initialized rules"""
+"""List of all initialized rules. Info: Each rule puts itself on this list when initialized."""
 
 def check_all_rules() -> None:
     """
