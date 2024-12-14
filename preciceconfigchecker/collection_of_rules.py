@@ -5,12 +5,11 @@ from severity import Severity
 # Implementation of the rule classes and initialization of these objects
 # Example 1
 class Rule_1(Rule):
-    def check_method(self) -> List[tuple[str, str]]:
-        result:List[tuple[str, str]] = []
-        result.append(("Node-A", "Node-B"))
-        result.append(("Node-C", "Node-D"))
-        result.append(("Node-E", "Node-F"))
-        return result
+    def check(self) -> None:
+        #Find violations in the graph and add them to the violations list in Rule.
+        self.violations.append(("Node-A", "Node-B"))
+        self.violations.append(("Node-C", "Node-D"))
+        self.violations.append(("Node-E", "Node-F"))
 
     def format_explanation(self, node_a, node_b) -> str:
         return f"Something went wrong between {node_a} and {node_b}"
@@ -26,11 +25,10 @@ Rule_1(Severity.INFO, "No connection between two nodes")
 
 # Example 2
 class Rule_2(Rule):
-    def check_method(self) -> List[tuple[str, str, str]]:
-        result:List[tuple[str, str, str]] = []
-        result.append(("Node-G", "Node-H", "Node-I"))
-        result.append(("Node-J", "Node-K", "Node-L"))
-        return result
+    def check(self) -> None:
+        #Find violations in the graph and add them to the violations list in Rule.
+        self.violations.append(("Node-G", "Node-H", "Node-I"))
+        self.violations.append(("Node-J", "Node-K", "Node-L"))
 
     def format_explanation(self, node_a, node_b, node_c) -> str:
         return f"Something went wrong between {node_a}, {node_b} and {node_c}"
@@ -49,10 +47,9 @@ Rule_2(Severity.WARNING, "No connection between three nodes")
 
 # Example 3
 class Rule_3(Rule):
-    def check_method(self) -> List[str]:
-        result:List[str] = []
-        result.append(("Node-M",))
-        return result
+    def check(self) -> None:
+        #Find violations in the graph and add them to the violations list in Rule.
+        self.violations.append(("Node-M",))
     
     def format_explanation(self, node_a) -> str:
         return f"Something went wrong with {node_a}"

@@ -27,15 +27,11 @@ class Rule(ABC):
         rules.append(self)
 
     @abstractmethod
-    def check_method(self) -> List[tuple]:
+    def check(self) -> None:
         """
         @abstractmethod: Defines how a 'Rule' should be checked
 
-        Returns:
-            List[tuple]: of all violations where the 'Rule' was not satisfied.
-
-        Tip: When overwriting, define the type of the tuple for easier use.
-        Tip: If the tuple only has one argument, put a comma ( , ) after it so that it is recognized as a tuple. Python specific!
+        Tip: Use 'self.violations.append()' to save the results directly.
         """
         pass
 
@@ -88,12 +84,6 @@ class Rule(ABC):
             bool: TRUE if formatted violations are available
         """
         return (len(self.formatted_violations) > 0)
-    
-    def check(self) -> None:
-        """
-        Runs the abstract 'check_method' and saves the violations
-        """
-        self.violations = self.check_method()
 
     def format_result(self) -> None:
         """
