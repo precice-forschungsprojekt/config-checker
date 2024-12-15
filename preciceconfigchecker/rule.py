@@ -9,7 +9,7 @@ class Rule(ABC):
     """
 
     violation_counter:int = 0
-    """Static Attribute: Do not use 'self.numbers', use 'Rule.numbers'"""
+    """Static Attribute: Do not use 'self.violation_counter', use 'Rule.violation_counter'"""
 
     def __init__(self, severity:Severity, problem:str) -> None:
         """
