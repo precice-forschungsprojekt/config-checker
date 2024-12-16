@@ -11,16 +11,20 @@ class Rule(ABC):
     violation_counter:int = 0
     """Static Attribute: Do not use 'self.violation_counter', use 'Rule.violation_counter'"""
 
-    def __init__(self, severity:Severity, problem:str) -> None:
+    @property
+    @abstractmethod
+    def severity(self) -> Severity: pass
+    """@abstract property: Type"""
+
+    @property
+    @abstractmethod
+    def problem(self) -> str: pass
+    """@abstract property: Short explanation of what the rule is supposed to check in general."""
+
+    def __init__(self) -> None:
         """
         Initializes an Rule object.
-
-        Args:
-            severity (Severity): Type
-            problem (str): Short explanation of what the rule is supposed to check in general.
         """
-        self.severity = severity
-        self.problem = problem
         self.rule:str
         self.formatted_violations:List[str] = []
         self.violations:List[tuple] = []

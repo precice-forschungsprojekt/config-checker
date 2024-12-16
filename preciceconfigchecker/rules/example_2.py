@@ -3,6 +3,9 @@ from rule import Rule
 from severity import Severity
 
 class Rule_2(Rule):
+    severity = Severity.WARNING
+    problem = "No connection between three nodes"
+
     def check(self) -> None:
         #Find violations in the graph and add them to the violations list in Rule.
         self.violations.append(("Node-G", "Node-H", "Node-I"))
@@ -20,4 +23,4 @@ class Rule_2(Rule):
                 f"Connect {node_a} and {node_b} and {node_a} and {node_c}"
         ]
     
-Rule_2(Severity.WARNING, "No connection between three nodes")
+Rule_2()
