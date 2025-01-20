@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 from severity import Severity
 import color as c
@@ -28,7 +29,7 @@ if __name__ == "__main__":
         path = args.src.name
         print(f"Checking file at '{c.dyeing(path, c.cyan)}'")
     else:
-        print(f"[{Severity.ERROR.value}]: '{c.dyeing(args.src.name, c.cyan)}' is not an xml file")
+        sys.exit(f"[{Severity.ERROR.value}]: '{c.dyeing(args.src.name, c.cyan)}' is not an xml file")
 
     # Step 1: Use preCICE itself to check for basic errors
     # TODO: Participant.check(...)
