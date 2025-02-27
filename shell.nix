@@ -5,8 +5,8 @@ let
         src = pkgs.fetchFromGitHub {
             owner = "precice-forschungsprojekt";
             repo = "config-graph";
-            rev = "master"; # TODO: Set a fixed version "refs/tags/v${version}";
-            hash = "sha256-o5zVqZtZh6/c6nl4aSoxccSkzi3ZgiT5/ihXA4m3YmQ=";
+            rev = "2b8aba41da3799c6241186130edca566de2e8749";
+            hash = "sha256-QKqOncz4r7YOdaO1Hem5egSISBjraku8ISOLKMvZIkc=";
         };
         pyproject = true;
 
@@ -18,6 +18,7 @@ let
             elementpath
             matplotlib
             networkx
+            pytest
         ];
     };
     pyprecice = pkgs.python312.pkgs.buildPythonPackage rec {
