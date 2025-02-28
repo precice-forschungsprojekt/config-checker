@@ -1,15 +1,13 @@
 from networkx import Graph
 
-from preciceconfigchecker.violation import Violation
-from preciceconfigchecker.rule import Rule, rules
-from preciceconfigchecker.severity import Severity
 import preciceconfigchecker.color as c
-
+from preciceconfigchecker.rule import Rule, rules
 # ALL RULES THAT SHOULD BE CHECKED NEED TO BE IMPORTED
 # SOME IDE's MIGHT REMOVE THEM AS UNUSED IMPORTS
 # noinspection PyUnresolvedReferences
 from preciceconfigchecker.rules import missing_coupling, missing_exchange, data_use_read_write, compositional_coupling
-
+from preciceconfigchecker.severity import Severity
+from preciceconfigchecker.violation import Violation
 
 
 def all_rules_satisfied(violations_by_rule: dict[Rule, list[Violation]]) -> bool:
@@ -26,7 +24,9 @@ def check_all_rules(graph: Graph, debug: bool) -> dict[Rule, list[Violation]]:
     """
     Checks all rules for violations
     """
-    print("\nChecking rules...")
+    print("")
+    if debug:
+        print("Checking rules...")
 
     violations_by_rule = {}
 
@@ -34,7 +34,8 @@ def check_all_rules(graph: Graph, debug: bool) -> dict[Rule, list[Violation]]:
         if debug or rule.severity != Severity.DEBUG:
             violations_by_rule[rule] = rule.check(graph)
 
-    print("Rules checked.")
+    if debug:
+        print("Rules checked.\n")
     return violations_by_rule
 
 
@@ -43,7 +44,7 @@ def print_all_results(violations_by_rule: dict[Rule, list[Violation]], debug: bo
     Prints all existing violations of all rules
     """
     if not all_rules_satisfied(violations_by_rule):
-        print("The following issues were found:")
+        print("The following issues were found:\n")
     for (rule, violations) in violations_by_rule.items():
         print_result(rule, violations, debug)
 
@@ -86,3 +87,5 @@ def print_result(rule: Rule, violations: list[Violation], debug: bool):
     for violation in violations:
         formatted_violation = violation.format()
         print(formatted_violation)
+
+    print("")
