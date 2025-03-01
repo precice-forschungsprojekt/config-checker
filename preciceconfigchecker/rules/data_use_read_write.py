@@ -6,9 +6,6 @@ from preciceconfigchecker.rule import Rule
 from preciceconfigchecker.severity import Severity
 from preciceconfigchecker.violation import Violation
 
-from precice_config_graph import graph as g
-from precice_config_graph.edges import Edge
-
 
 class DataUseReadWriteRule(Rule):
     name = "Utilization of data."
@@ -92,10 +89,10 @@ class DataUseReadWriteRule(Rule):
             but not being exchanged between them.
         """
 
-        def __init__(self, writer: ParticipantNode, reader: ParticipantNode, data_node: DataNode):
+        def __init__(self, data_node: DataNode, writer: ParticipantNode, reader: ParticipantNode):
+            self.data_node = data_node
             self.writer = writer
             self.reader = reader
-            self.data_node = data_node
 
         def format_explanation(self) -> str:
             return (f"Data {self.data_node.name} gets written by {self.writer.name} and read by {self.reader.name}, "
@@ -187,13 +184,13 @@ class DataUseReadWriteRule(Rule):
                             else:
                                 if writer not in data_flow_graph or reader not in data_flow_graph:
                                     # One of writer/reader is not connected through an exchange involving data_node
-                                    violations.append(self.DataNotExchangedViolation(writer, reader, data_node))
+                                    violations.append(self.DataNotExchangedViolation(data_node, writer, reader))
                                 else:
                                     # Both writer/reader are connected with an exchange involving data_node
                                     # Check if there exists a path between them
                                     path = nx.has_path(data_flow_graph, writer, reader)
                                     if not path:
-                                        violations.append(self.DataNotExchangedViolation(writer, reader, data_node))
+                                        violations.append(self.DataNotExchangedViolation(data_node, writer, reader))
 
                 elif use_data and read_data and not write_data:
                     for mesh in meshes:
