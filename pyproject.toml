@@ -1,11 +1,25 @@
 [project]
 name = "preciceconfigchecker"
 version = "0.0.1"
+
+readme = "README.md"
+license = {text = "MIT License"}
+
+requires-python = ">= 3.12"
 dependencies = [
     "precice_config_graph @ git+https://github.com/precice-forschungsprojekt/config-graph.git",
     "pyprecice>=3.1.2",
     "pytest"
 ]
 
+[project.urls]
+Repository = "https://github.com/precice-forschungsprojekt/config-checker.git"
+Issues = "https://github.com/precice-forschungsprojekt/config-checker/issues"
+
 [tool.setuptools]
 packages = ["preciceconfigchecker"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test.py", "*_test.py"]
+pythonpath = ["."]
