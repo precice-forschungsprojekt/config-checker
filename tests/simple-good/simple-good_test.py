@@ -1,4 +1,3 @@
-from precice_config_graph import graph as g, xml_processing
 from tests.test_utils import assert_equal_violations, get_actual_violations, create_graph
 
 

@@ -5,7 +5,8 @@ from preciceconfigchecker.rule import Rule, rules
 # ALL RULES THAT SHOULD BE CHECKED NEED TO BE IMPORTED
 # SOME IDE's MIGHT REMOVE THEM AS UNUSED IMPORTS
 # noinspection PyUnresolvedReferences
-from preciceconfigchecker.rules import missing_coupling, missing_exchange, data_use_read_write, compositional_coupling
+from preciceconfigchecker.rules import missing_coupling, missing_exchange, data_use_read_write, compositional_coupling, \
+    m2n_exchange
 from preciceconfigchecker.severity import Severity
 from preciceconfigchecker.violation import Violation
 

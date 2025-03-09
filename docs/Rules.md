@@ -37,18 +37,18 @@ A participant needs to be part of at least one coupling scheme.
 
 Otherwise, the participant does not exchange data and is not part of a coupled simulation, which is an error.
 
-### (3) `TODO` Participant needs to be part of an m2n exchange
+### (3) Participant needs to be part of an m2n exchange
 
-In order for the two solvers to exchange data between them, 
+In order for the two solvers to exchange data between them,
 their participants have to be connected through an m2n node in the config.xml.
 
 Otherwise, they are not partaking in the coupled simulation.
 
-#### `TODO` Participant not part of an m2n exchange
+#### Participant not part of an m2n exchange
 
 A participant needs to be part of at least one m2n data exchange to exchange data.
 
-#### `TODO` Duplicate m2n exchange
+#### `Duplicate m2n exchange
 
 A participant can be part of more than one m2n exchange, but an exchange between two participants is only allowed to be
 defined once.
@@ -57,7 +57,7 @@ defined once.
 
 If a participant wants to read-/write-data from or to a mesh, then he needs to know the correct positions to do so.
 
-He knows these coordinates if the mesh is his own (`provide-mesh`) or he explicitly states that he knows them from a 
+He knows these coordinates if the mesh is his own (`provide-mesh`) or he explicitly states that he knows them from a
 received mesh (with `direct-access="true"`).
 
 If neither is satisfied, the participant has no permission to read from or write to the mesh.
@@ -73,10 +73,10 @@ A coupling-scheme needs to have at least one exchange element. Otherwise, it is 
 
 ### Compositional coupling deadlock
 
-Participants can be "connected" through coupling-schemes. 
+Participants can be "connected" through coupling-schemes.
 When using `serial` couplings, the `second` participant waits for the `first`.
 
-This means that when more than two participants get coupled in pairs of two, a circular dependency can 
+This means that when more than two participants get coupled in pairs of two, a circular dependency can
 evolve, in which `X` waits for `Y`, `Y` waits for `Z` and `Z` for `X`, leading to a deadlock.
 
 ## Rules with severity `warning`
@@ -92,7 +92,7 @@ It is possible, however, that meshes fit together naturally.
 
 ### (2) Data rules
 
-A data element in a preCICE needs to be mentioned at many locations to finally allow it to be utilized by one or more 
+A data element in a preCICE needs to be mentioned at many locations to finally allow it to be utilized by one or more
 participants.
 After declaration, data has to be:
 
@@ -110,7 +110,7 @@ For the exact implementation, see `rules/data_use_read_write.py`.
 
 #### Data gets used in a mesh, read and written by different participants, but not exchanged
 
-The data element does not get exchanged between the participants which are accessing the data. 
+The data element does not get exchanged between the participants which are accessing the data.
 
 #### Data gets used but not written or read
 
