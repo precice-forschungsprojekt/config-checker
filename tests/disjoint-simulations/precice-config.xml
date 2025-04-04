@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<precice-configuration>
+    <log>
+        <sink
+                filter="%Severity% > debug"
+                format="---[precice] %ColorizedSeverity% %Message%"
+                enabled="true" />
+    </log>
+
+    <!--Part A-->
+
+    <data:scalar name="ColorA" />
+
+    <mesh name="GeneratorA-Mesh" dimensions="2">
+        <use-data name="ColorA" />
+    </mesh>
+
+    <mesh name="PropagatorA-Mesh" dimensions="2">
+        <use-data name="ColorA" />
+    </mesh>
+
+    <participant name="GeneratorA">
+        <provide-mesh name="GeneratorA-Mesh" />
+        <write-data name="ColorA" mesh="GeneratorA-Mesh" />
+    </participant>
+
+    <participant name="PropagatorA">
+        <receive-mesh name="GeneratorA-Mesh" from="GeneratorA" />
+        <provide-mesh name="PropagatorA-Mesh" />
+        <mapping:nearest-neighbor
+                direction="read"
+                from="GeneratorA-Mesh"
+                to="PropagatorA-Mesh"
+                constraint="consistent" />
+        <read-data name="ColorA" mesh="PropagatorA-Mesh" />
+    </participant>
+
+    <m2n:sockets acceptor="GeneratorA" connector="PropagatorA" exchange-directory=".." />
+
+    <coupling-scheme:serial-explicit>
+        <participants first="GeneratorA" second="PropagatorA" />
+        <time-window-size value="0.01" />
+        <max-time value="0.3" />
+        <exchange data="ColorA" mesh="GeneratorA-Mesh" from="GeneratorA" to="PropagatorA" />
+    </coupling-scheme:serial-explicit>
+
+    <!--Part B-->
+
+    <data:scalar name="ColorB" />
+
+    <mesh name="GeneratorB-Mesh" dimensions="2">
+        <use-data name="ColorB" />
+    </mesh>
+
+    <mesh name="PropagatorB-Mesh" dimensions="2">
+        <use-data name="ColorB" />
+    </mesh>
+
+    <participant name="GeneratorB">
+        <provide-mesh name="GeneratorB-Mesh" />
+        <write-data name="ColorB" mesh="GeneratorB-Mesh" />
+    </participant>
+
+    <participant name="PropagatorB">
+        <receive-mesh name="GeneratorB-Mesh" from="GeneratorB" />
+        <provide-mesh name="PropagatorB-Mesh" />
+        <mapping:nearest-neighbor
+                direction="read"
+                from="GeneratorB-Mesh"
+                to="PropagatorB-Mesh"
+                constraint="consistent" />
+        <read-data name="ColorB" mesh="PropagatorB-Mesh" />
+    </participant>
+
+    <m2n:sockets acceptor="GeneratorB" connector="PropagatorB" exchange-directory=".." />
+
+    <coupling-scheme:serial-explicit>
+        <participants first="GeneratorB" second="PropagatorB" />
+        <time-window-size value="0.01" />
+        <max-time value="0.3" />
+        <exchange data="ColorB" mesh="GeneratorB-Mesh" from="GeneratorB" to="PropagatorB" />
+    </coupling-scheme:serial-explicit>
+</precice-configuration>

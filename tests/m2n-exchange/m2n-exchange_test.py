@@ -1,5 +1,6 @@
 from precice_config_graph.nodes import ParticipantNode
 from preciceconfigchecker.rules.m2n_exchange import M2NExchangeRule as e
+from preciceconfigchecker.rules.disjoint_simulations import DisjointSimulationsRule as d
 from tests.test_utils import assert_equal_violations, create_graph, get_actual_violations
 
 
@@ -17,9 +18,13 @@ def test_m2n_exchange():
             elif node.name == "Propagator":
                 n_propagator = node
 
-    violations_expected = []
-
-    violations_expected += [e.MissingM2NEchangeViolation(n_alligator),
-                            e.DuplicateM2NExchangeViolation(n_generator, n_propagator)]
+    violations_expected = [
+        e.MissingM2NEchangeViolation(n_alligator),
+        e.DuplicateM2NExchangeViolation(n_generator, n_propagator),
+        d.DisjointSimulationsViolation(frozenset([
+            frozenset(["Generator", "Propagator", "Instigator"]),
+            frozenset(["Alligator"])
+        ]))
+    ]
 
     assert_equal_violations("M2N-Exchange test", violations_expected, violations_actual)

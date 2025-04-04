@@ -56,7 +56,8 @@ class Violation(ABC):
         Returns:
             str: formatted 'Violation'
         """
-        explanation: str = self.format_explanation()
+        # indent additional lines of the explanation to be aligned with first row after ">>> " is added
+        explanation: str = self.format_explanation().replace("\n", "\n     ")
         possible_solutions: List[str] = self.format_possible_solutions()
         existing_line: str = f"(Line {self.line}) " if self.line else ""
         out: str = c.dyeing(" >>> ", c.cyan) + existing_line + explanation

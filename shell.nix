@@ -1,12 +1,12 @@
 let
     pkgs = import <nixpkgs> {};
     config-graph = pkgs.python312.pkgs.buildPythonPackage rec {
-        name = "precice-config-graph";
+        name = "precice_config_graph";
         src = pkgs.fetchFromGitHub {
             owner = "precice-forschungsprojekt";
             repo = "config-graph";
             rev = "master"; # TODO: Set a fixed version "refs/tags/v${version}";
-            hash = "sha256-QKqOncz4r7YOdaO1Hem5egSISBjraku8ISOLKMvZIkc=";
+            hash = "sha256-WIc7OGmvHEd2xWT1EIUTefjHtBiWtvtEfu5jHKU95hk=";
         };
         pyproject = true;
 
