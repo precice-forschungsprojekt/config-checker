@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<precice-configuration>
+    <log>
+        <sink
+                filter="%Severity% > debug"
+                format="---[precice] %ColorizedSeverity% %Message%"
+                enabled="true"/>
+    </log>
+
+    <data:scalar name="Color"/>
+
+    <mesh name="Impostor-Mesh" dimensions="2">
+        <use-data name="Color"/>
+    </mesh>
+
+    <mesh name="Forsaken-Mesh" dimensions="2">
+        <use-data name="Color"/>
+    </mesh>
+
+    <mesh name="Popular-Mesh" dimensions="2">
+        <use-data name="Color"/>
+    </mesh>
+
+    <mesh name="Incinerator-Mesh" dimensions="2">
+        <use-data name="Color"/>
+    </mesh>
+
+    <mesh name="Elevator-Mesh" dimensions="2">
+        <use-data name="Color"/>
+    </mesh>
+
+    <mesh name="Instigator-Mesh" dimensions="2">
+        <use-data name="Color"/>
+    </mesh>
+
+    <mesh name="Generator-Mesh" dimensions="2">
+        <use-data name="Color"/>
+    </mesh>
+
+    <mesh name="Propagator-Mesh" dimensions="2">
+        <use-data name="Color"/>
+    </mesh>
+
+    <mesh name="Alligator-Mesh" dimensions="2">
+        <use-data name="Color"/>
+    </mesh>
+
+    <participant name="Generator">
+        <provide-mesh name="Generator-Mesh"/>
+        <provide-mesh name="Popular-Mesh"/>
+        <receive-mesh name="Propagator-Mesh" from="Propagator"/>
+        <!-- Mapping on unclaimed mesh -->
+        <mapping:nearest-neighbor
+                direction="write"
+                to="Forsaken-Mesh"
+                from="Generator-Mesh"
+                constraint="conservative"/>
+        <!-- JIT Mapping with mesh provided multiple times-->
+        <mapping:nearest-neighbor
+            direction="read"
+            from="Popular-Mesh"
+            constraint="consistent"/>
+        <write-data name="Color" mesh="Generator-Mesh"/>
+        <read-data name="Color" mesh="Popular-Mesh"/>
+    </participant>
+
+    <participant name="Propagator">
+        <receive-mesh name="Generator-Mesh" from="Generator"/>
+        <provide-mesh name="Propagator-Mesh"/>
+        <!-- write mapping without write-data element -->
+        <mapping:nearest-neighbor
+                direction="write"
+                to="Propagator-Mesh"
+                from="Generator-Mesh"
+                constraint="consistent"/>
+        <read-data name="Color" mesh="Propagator-Mesh"/>
+    </participant>
+
+    <participant name="Alligator">
+        <provide-mesh name="Alligator-Mesh"/>
+        <receive-mesh name="Generator-Mesh" from="Generator"/>
+        <!-- just in time mapping without permission -->
+        <mapping:nearest-neighbor
+                direction="read"
+                from="Generator-Mesh"
+                constraint="consistent"/>
+        <read-data name="Color" mesh="Generator-Mesh"/>
+    </participant>
+
+    <participant name="Instigator">
+        <provide-mesh name="Instigator-Mesh"/>
+        <receive-mesh name="Alligator-Mesh" from="Alligator" api-access="true"/>
+        <!-- JIT with unsupported type and wrong direction+constraint combination -->
+        <mapping:radial-geometric-multiscale
+            direction="read"
+            from="Alligator-Mesh"
+            constraint="scaled-consistent-surface"/>
+        <!-- JIT with unsupported direction+constraint combination -->
+        <mapping:nearest-neighbor
+            direction="write"
+            to="Alligator-Mesh"
+            constraint="consistent"/>
+        <read-data name="Color" mesh="Alligator-Mesh"/>
+        <write-data name="Color" mesh="Alligator-Mesh"/>
+    </participant>
+
+    <participant name="Elevator">
+        <provide-mesh name="Elevator-Mesh"/>
+        <receive-mesh name="Instigator-Mesh" from="Instigator"/>
+        <!-- there is a parallel coupling scheme between Elevator and Instigator, meaning that read-conservative is
+        invalid -->
+        <mapping:linear-cell-interpolation
+            direction="read"
+            from="Instigator-Mesh"
+            to="Elevator-Mesh"
+            constraint="conservative"/>
+        <read-data name="Color" mesh="Elevator-Mesh"/>
+    </participant>
+
+    <participant name="Incinerator">
+        <provide-mesh name="Popular-Mesh"/>
+        <provide-mesh name="Incinerator-Mesh"/>
+        <provide-mesh name="Impostor-Mesh"/>
+        <receive-mesh name="Propagator-Mesh" from="Propagator" api-access="1"/>
+        <!-- wrong direction (read <=> from needs to be defined) and wrong format (invalid constraint) -->
+        <mapping:nearest-neighbor
+            direction="read"
+            to="Propagator-Mesh"
+            constraint="scaled-consistent-volume"/>
+        <mapping:nearest-neighbor
+            direction="read"
+            from="Impostor-Mesh"
+            to="Incinerator-Mesh"
+            constraint="consistent"/>
+        <read-data name="Color" mesh="Propagator-Mesh"/>
+        <read-data name="Color" mesh="Incinerator-Mesh"/>
+    </participant>
+
+    <m2n:sockets acceptor="Generator" connector="Alligator" exchange-directory=".."/>
+    <m2n:sockets acceptor="Generator" connector="Propagator" exchange-directory=".."/>
+    <m2n:sockets acceptor="Generator" connector="Instigator" exchange-directory=".."/>
+    <m2n:sockets acceptor="Elevator" connector="Instigator" exchange-directory=".."/>
+    <m2n:sockets acceptor="Alligator" connector="Instigator" exchange-directory=".."/>
+    <!-- <m2n:sockets acceptor="Incinerator" connector="Propagator" exchange-directory=".."/> -->
+
+    <coupling-scheme:serial-explicit>
+        <participants first="Incinerator" second="Propagator"/>
+        <time-window-size value="0.01"/>
+        <max-time value="0.3"/>
+        <!-- Wrong exchange (to should be incinerator, if direction=read is correct) -->
+        <exchange data="Color" mesh="Incinerator-Mesh" from="Incinerator" to="Propagator"/>
+    </coupling-scheme:serial-explicit>
+
+    <!-- mostly copied from multi coupling test in config-graph -->
+    <coupling-scheme:multi>
+        <participant name="Elevator" control="yes"/>
+        <participant name="Instigator"/>
+        <participant name="Alligator"/>
+        <max-time value="40.0" />
+        <time-window-size value="1e-4" />
+        <!-- missing exchange between them
+        <exchange data="Color" mesh="Instigator-Mesh" from="Instigator" to="Elevator"/>
+        -->
+        <exchange data="Color" mesh="Alligator-Mesh" from="Alligator" to="Instigator"/>
+        <exchange data="Color" mesh="Alligator-Mesh" from="Instigator" to="Alligator"/>
+        <max-iterations value="50" />
+        <relative-convergence-measure data="Color" mesh="Instigator-Mesh" limit="1e-4"/>
+        <relative-convergence-measure data="Color" mesh="Alligator-Mesh" limit="1e-4"/>
+        <acceleration:IQN-ILS>
+            <data name="Color" mesh="Alligator-Mesh" scaling="1e6" />
+            <data name="Color" mesh="Instigator-Mesh" scaling="1e6" />
+            <preconditioner type="constant" />
+            <filter type="QR1-absolute" limit="1e-12" />
+            <initial-relaxation value="0.001" />
+            <max-used-iterations value="100" />
+            <time-windows-reused value="8" />
+        </acceleration:IQN-ILS>
+    </coupling-scheme:multi>
+
+    <coupling-scheme:serial-explicit>
+        <participants first="Generator" second="Propagator"/>
+        <time-window-size value="0.01"/>
+        <max-time value="0.3"/>
+        <exchange data="Color" mesh="Generator-Mesh" from="Generator" to="Propagator"/>
+        <exchange data="Color" mesh="Propagator-Mesh" to="Propagator" from="Generator"/>
+    </coupling-scheme:serial-explicit>
+</precice-configuration>

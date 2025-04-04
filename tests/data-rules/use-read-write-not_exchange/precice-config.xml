@@ -59,7 +59,7 @@
 
   <participant name="Instigator">
     <provide-mesh name="Instigator-Mesh"/>
-    <receive-mesh name="Generator-Mesh" from="Generator" api-access="true"/>
+    <receive-mesh name="Generator-Mesh" from="Generator"/>
     <!-- regular mapping -->
     <mapping:nearest-neighbor
             direction="read"
