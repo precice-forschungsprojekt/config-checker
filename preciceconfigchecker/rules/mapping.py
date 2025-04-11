@@ -1,7 +1,8 @@
 from networkx.classes import Graph
 from precice_config_graph.nodes import ParticipantNode, MeshNode, MappingNode, Direction, MappingConstraint, \
-    MappingMethod, CouplingSchemeNode, MultiCouplingSchemeNode, CouplingSchemeType, ExchangeNode, M2NNode, WriteDataNode, \
-    ReadDataNode
+    MappingMethod, CouplingSchemeNode, MultiCouplingSchemeNode, CouplingSchemeType, ExchangeNode, M2NNode, \
+    WriteDataNode, \
+    ReadDataNode, ActionNode, ExportNode, WatchPointNode, WatchIntegralNode
 from preciceconfigchecker.rule_utils import rule_error_message
 from preciceconfigchecker.rule import Rule
 from preciceconfigchecker.severity import Severity
@@ -343,19 +344,24 @@ class MappingRule(Rule):
             if self.direction == Direction.READ:
                 self.connecting_word = "from"
                 self.inverse_connector = "to"
+                self.inverse_direction = Direction.WRITE
             elif self.direction == Direction.WRITE:
                 self.connecting_word = "to"
                 self.inverse_connector = "from"
+                self.inverse_direction = Direction.READ
 
         def format_explanation(self) -> str:
             return (f"Participant {self.parent.name} is specifying a {self.direction.value}-mapping "
                     f"{self.connecting_word} participant {self.stranger.name}'s mesh {self.mesh_stranger.name} "
-                    f"{self.inverse_connector} participant {self.parent.name}'s mesh {self.mesh_parent.name}, but does "
-                    f"not define a corresponding {self.direction.value}-data element on mesh {self.mesh_parent.name}.")
+                    f"{self.inverse_connector} participant {self.parent.name}'s mesh {self.mesh_parent.name}. \nHowever, "
+                    f"it seems like participant {self.parent.name} does not {self.direction.value} "
+                    f"{self.connecting_word} mesh {self.mesh_parent.name} or participant {self.stranger.name} does not "
+                    f"{self.inverse_direction.value} {self.inverse_connector} mesh {self.mesh_stranger.name}.")
 
         def format_possible_solutions(self) -> list[str]:
-            return [f"Please add a {self.direction.value}-data element to participant {self.parent.name}, which uses "
-                    f"mesh {self.mesh_parent.name} by participant {self.parent.name}.",
+            return [f"Please make sure that {self.parent.name} {self.direction.value}s {self.connecting_word} "
+                    f"{self.mesh_parent.name} and {self.stranger.name} {self.inverse_direction.value}s "
+                    f"{self.inverse_connector} {self.mesh_stranger.name}.",
                     "Otherwise, please remove the mapping to improve readability."]
 
     class JustInTimeMappingApiAccessViolation(Violation):
@@ -589,17 +595,24 @@ class MappingRule(Rule):
             self.direction = direction
             if self.direction == Direction.READ:
                 self.connecting_word = "from"
+                self.inverse_connector = "to"
+                self.inverse_direction = Direction.WRITE
             elif self.direction == Direction.WRITE:
                 self.connecting_word = "to"
+                self.inverse_connector = "from"
+                self.inverse_direction = Direction.READ
 
         def format_explanation(self) -> str:
             return (f"Participant {self.parent.name} is specifying a just-in-time {self.direction.value}-mapping "
-                    f"{self.connecting_word} participant {self.stranger.name}'s mesh {self.mesh.name}, but does not "
-                    f"define a corresponding {self.direction.value}-data element on mesh {self.mesh.name}.")
+                    f"{self.connecting_word} participant {self.stranger.name}'s mesh {self.mesh.name}. "
+                    f"\nHowever, it seems like participant {self.parent.name} does not {self.direction.value} "
+                    f"{self.connecting_word} mesh {self.mesh.name} or participant {self.stranger.name} does not "
+                    f"{self.inverse_direction.value} {self.inverse_connector} mesh {self.mesh.name}.")
 
         def format_possible_solutions(self) -> list[str]:
-            return [f"Please add a {self.direction.value}-data element to participant {self.parent.name}, which uses "
-                    f"mesh {self.mesh.name} by participant {self.stranger.name}.",
+            return [f"Please make sure that {self.parent.name} {self.direction.value}s {self.connecting_word} "
+                    f"{self.mesh.name} and {self.stranger.name} {self.inverse_direction.value}s "
+                    f"{self.inverse_connector} {self.mesh.name}.",
                     "Otherwise, please remove the mapping to improve readability."]
 
     def check(self, graph: Graph) -> list[Violation]:
@@ -731,31 +744,21 @@ class MappingRule(Rule):
                             violations.append(
                                 self.JustInTimeMappingApiAccessViolation(participant_parent, participant_stranger,
                                                                          mesh_stranger, direction))
+                # Check if there are corresponding read-/write-data elements for the mapping
                 if direction == Direction.WRITE:
-                    write_datas: list[WriteDataNode] = participant_parent.write_data
-                    if len(write_datas) == 0:
-                        violations.append(
-                            self.JustInTimeMappingMissingDataProcessingViolation(participant_parent,
-                                                                                 participant_stranger,
-                                                                                 mesh_stranger, direction))
-                    if len(write_datas) > 0 and not any(
-                            data_processing_belongs_to_mapping(write_data, mesh_stranger) for write_data in
-                            write_datas):
-                        # Data gets mapped but not written
+                    write_datas = get_write_datas_of_mesh(mesh_stranger, participant_parent)
+                    read_datas = get_read_datas_of_mesh(mesh_stranger, participant_stranger)
+                    # In a JIT write-mapping, Parent should write to Stranger's mesh; Stranger should read from their own mesh
+                    if len(write_datas) == 0 or len(read_datas) == 0:
                         violations.append(
                             self.JustInTimeMappingMissingDataProcessingViolation(participant_parent,
                                                                                  participant_stranger,
                                                                                  mesh_stranger, direction))
                 elif direction == Direction.READ:
-                    read_datas: list[ReadDataNode] = participant_parent.read_data
-                    if len(read_datas) == 0:
-                        violations.append(
-                            self.JustInTimeMappingMissingDataProcessingViolation(participant_parent,
-                                                                                 participant_stranger,
-                                                                                 mesh_stranger, direction))
-                    if len(read_datas) > 0 and not any(
-                            data_processing_belongs_to_mapping(read_data, mesh_stranger) for read_data in read_datas):
-                        # Data gets mapped, but not read
+                    # In a JIT read-mapping, Parent should read from Stranger's mesh; Stranger should write to their own mesh
+                    read_datas = get_read_datas_of_mesh(mesh_stranger, participant_parent)
+                    write_datas = get_write_datas_of_mesh(mesh_stranger, participant_stranger)
+                    if len(read_datas) == 0 or len(write_datas) == 0:
                         violations.append(
                             self.JustInTimeMappingMissingDataProcessingViolation(participant_parent,
                                                                                  participant_stranger,
@@ -775,30 +778,20 @@ class MappingRule(Rule):
                             self.MappingDirectionViolation(participant_parent, participant_stranger, mesh_parent,
                                                            mesh_stranger, direction))
 
-                # Check if there is a corresponding read-/write-data element for the mapping
+                # Check if there are corresponding read-/write-data elements for the mapping
                 if direction == Direction.WRITE:
-                    write_datas: list[WriteDataNode] = participant_parent.write_data
-                    if len(write_datas) == 0:
-                        # In a write-mapping, Parent has to write the data
-                        violations.append(
-                            self.MappingMissingDataProcessingViolation(participant_parent, participant_stranger,
-                                                                       mesh_parent, mesh_stranger, direction))
-                    # In a write-mapping, Parent should write to their own mesh
-                    if len(write_datas) > 0 and not any(
-                            data_processing_belongs_to_mapping(write_data, mesh_parent) for write_data in write_datas):
+                    # In a write-mapping, Parent should write to their own mesh; Stranger should read from their own mesh
+                    write_datas = get_write_datas_of_mesh(mesh_parent, participant_parent)
+                    read_datas = get_read_datas_of_mesh(mesh_stranger, participant_stranger)
+                    if len(write_datas) == 0 or len(read_datas) == 0:
                         violations.append(
                             self.MappingMissingDataProcessingViolation(participant_parent, participant_stranger,
                                                                        mesh_parent, mesh_stranger, direction))
                 elif direction == Direction.READ:
-                    read_datas: list[ReadDataNode] = participant_parent.read_data
-                    if len(read_datas) == 0:
-                        # In a read mapping, Parent should read data
-                        violations.append(
-                            self.MappingMissingDataProcessingViolation(participant_parent, participant_stranger,
-                                                                       mesh_parent, mesh_stranger, direction))
-                    # In a read-mapping, Parent should read from their own mesh
-                    if len(read_datas) > 0 and not any(
-                            data_processing_belongs_to_mapping(read_data, mesh_parent) for read_data in read_datas):
+                    # In a read-mapping, Parent should read from their own mesh; Stranger should write to their own
+                    write_datas = get_write_datas_of_mesh(mesh_stranger, participant_stranger)
+                    read_datas = get_read_datas_of_mesh(mesh_parent, participant_parent)
+                    if len(read_datas) == 0 or len(write_datas) == 0:
                         violations.append(
                             self.MappingMissingDataProcessingViolation(participant_parent, participant_stranger,
                                                                        mesh_parent, mesh_stranger, direction))
@@ -875,19 +868,6 @@ def get_m2n_of_participants(m2ns: list[M2NNode], participant_a: ParticipantNode,
         elif m2n.acceptor == participant_b and m2n.connector == participant_a:
             return m2n
     return None
-
-
-def data_processing_belongs_to_mapping(data_processing: WriteDataNode | ReadDataNode, mesh: MeshNode) -> bool:
-    """
-        This function evaluates whether the given data-processing node is valid for a mapping,
-        defined by the given mesh.
-        It is assumed that the data_processing node is specified by the parent of the mapping,
-        and that the mesh is the mesh that would be expected in a correct data_processing.
-        :param data_processing: The data-processing node, either a write-data node or a read-data node.
-        :param mesh: The mesh that would be expected in a correct data_processing.
-        :return: True, if the data-processing node is valid for the mapping, False otherwise.
-    """
-    return mesh == data_processing.mesh
 
 
 def exchange_belongs_to_mapping(exchange: ExchangeNode, direction: Direction, participant_stranger: ParticipantNode,
@@ -1031,3 +1011,49 @@ def filter_m2n_nodes(graph: Graph) -> list[M2NNode]:
         if isinstance(node, M2NNode):
             m2ns.append(node)
     return m2ns
+
+
+def get_write_datas_of_mesh(mesh: MeshNode, parent: ParticipantNode) -> list[WriteDataNode | ActionNode]:
+    """
+        Get all writers of the given mesh, which gets provided by parent.
+        Data can be written by a write-data node or an action node.
+        :param mesh: The mesh to get writers for.
+        :param parent: The participant providing mesh.
+        :return: A list of all writers of the given mesh, if any.
+    """
+    writers: list[WriteDataNode | ActionNode] = []
+    for action in parent.actions:
+        if action.mesh == mesh:
+            writers.append(action)
+    for write_data in parent.write_data:
+        if write_data.mesh == mesh:
+            writers.append(write_data)
+    return writers
+
+
+def get_read_datas_of_mesh(mesh: MeshNode, parent: ParticipantNode) -> list[
+    ReadDataNode | ExportNode | ActionNode | WatchPointNode | WatchIntegralNode]:
+    """
+        Get all readers of the given mesh, which gets provided by parent.
+        Data can be read by a read-data node, an export node, an action node, or a watch-point /-integral node.
+        :param mesh: The mesh to get writers for.
+        :param parent: The participant providing mesh.
+        :return: A list of all readers of the given mesh, if any.
+    """
+    readers: list[ReadDataNode | ExportNode | ActionNode | WatchPointNode | WatchIntegralNode] = []
+    # Export “reads” all meshes
+    for export in parent.exports:
+        readers.append(export)
+    for action in parent.actions:
+        if action.mesh == mesh:
+            readers.append(action)
+    for read_data in parent.read_data:
+        if read_data.mesh == mesh:
+            readers.append(read_data)
+    for watchpoint in parent.watchpoints:
+        if watchpoint.mesh == mesh:
+            readers.append(watchpoint)
+    for watch_integral in parent.watch_integrals:
+        if watch_integral.mesh == mesh:
+            readers.append(watch_integral)
+    return readers

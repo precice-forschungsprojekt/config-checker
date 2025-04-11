@@ -88,7 +88,9 @@ def test_mapping():
 
         d.DataNotExchangedViolation(d_color, p_generator, p_alligator),
 
-        d.DataNotExchangedViolation(d_color, p_instigator, p_elevator)
+        d.DataNotExchangedViolation(d_color, p_instigator, p_elevator),
+
+        d.DataNotExchangedViolation(d_color, p_propagator, p_incinerator)
     ]
 
     assert_equal_violations("Mapping-test", violations_expected, violations_actual)
