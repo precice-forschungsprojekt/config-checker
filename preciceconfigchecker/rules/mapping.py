@@ -1,6 +1,7 @@
 from networkx.classes import Graph
 from precice_config_graph.nodes import ParticipantNode, MeshNode, MappingNode, Direction, MappingConstraint, \
-    MappingMethod, CouplingSchemeNode, MultiCouplingSchemeNode, CouplingSchemeType, ExchangeNode, M2NNode, WriteDataNode, \
+    MappingMethod, CouplingSchemeNode, MultiCouplingSchemeNode, CouplingSchemeType, ExchangeNode, M2NNode, \
+    WriteDataNode, \
     ReadDataNode
 from preciceconfigchecker.rule_utils import rule_error_message
 from preciceconfigchecker.rule import Rule
@@ -10,53 +11,6 @@ from preciceconfigchecker.violation import Violation
 
 class MappingRule(Rule):
     name = "Mapping rules."
-
-    class UnclaimedMeshMappingViolation(Violation):
-        """
-            This class handles a mesh being mentioned in a mapping, but no participant providing it.
-        """
-        severity = Severity.ERROR
-
-        def __init__(self, parent: ParticipantNode, mesh: MeshNode, direction: Direction):
-            self.parent = parent
-            self.mesh = mesh
-            self.direction = direction
-
-        def format_explanation(self) -> str:
-            return (f"The mesh {self.mesh.name} in the {self.direction.value}-mapping specified by participant "
-                    f"{self.parent.name} does not get provided by any participant.")
-
-        def format_possible_solutions(self) -> list[str]:
-            return [f"Please let any participant provide the mesh {self.mesh.name}.",
-                    "Otherwise, please remove it to improve readability."]
-
-    class RepeatedlyClaimedMeshMappingViolation(Violation):
-        """
-            This class handles a mesh being mentioned in a mapping, but multiple participant providing it.
-        """
-        severity = Severity.ERROR
-
-        def __init__(self, parent: ParticipantNode, participants: list[ParticipantNode], mesh: MeshNode,
-                     direction: Direction):
-            self.parent = parent
-            self.mesh = mesh
-            self.direction = direction
-            participants_s = sorted(participants, key=lambda participant: participant.name)
-            self.names = participants_s[0].name
-            for i in range(1, len(participants_s) - 1):
-                self.names += ", "
-                self.names += participants_s[i].name
-            # The last participant has to be connected with "and", the others with a comma.
-            self.names += " and "
-            # Name of last participant
-            self.names += participants_s[-1].name
-
-        def format_explanation(self) -> str:
-            return (f"The mesh {self.mesh.name} in the {self.direction.value}-mapping specified by participant "
-                    f"{self.parent.name} gets provided by participants {self.names}.")
-
-        def format_possible_solutions(self) -> list[str]:
-            return [f"Please remove the mesh {self.mesh.name} from all but one participants provided meshes."]
 
     class SameParticipantMappingViolation(Violation):
         """
@@ -145,9 +99,8 @@ class MappingRule(Rule):
             out: str = (f"The participant {self.parent.name} is specifying a {self.direction.value}-mapping "
                         f"{self.connecting_word} participant {self.stranger.name}'s mesh {self.mesh.name}, "
                         f"but there is no exchange for it in the coupling-scheme between them.")
-            out += (
-                f"\nFor a {self.direction.value}-mapping, the mesh {self.mesh.name} should be used to exchange "
-                f"data.")
+            out += (f"\nFor a {self.direction.value}-mapping, the mesh {self.mesh.name} should be used to "
+                    f"exchange data.")
             return out
 
         def format_possible_solutions(self) -> list[str]:
@@ -646,15 +599,13 @@ class MappingRule(Rule):
             if len(participant_strangers) == 0:
                 # This mapping is broken
                 # mesh_stranger is not provided by any participant
-                violations.append(self.UnclaimedMeshMappingViolation(participant_parent, mesh_stranger, direction))
+                # Gets handled in provide_mesh.py
                 continue
 
             if len(participant_strangers) > 1:
                 # This mapping is broken
                 # mesh_stranger gets claimed by more than one participant
-                violations.append(
-                    self.RepeatedlyClaimedMeshMappingViolation(participant_parent, participant_strangers,
-                                                               mesh_stranger, direction))
+                # Gets handled in provide_mesh.py
                 continue
 
             # There is only one participant claiming the mesh

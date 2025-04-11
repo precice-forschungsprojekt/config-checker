@@ -13,14 +13,6 @@
         <use-data name="Color"/>
     </mesh>
 
-    <mesh name="Forsaken-Mesh" dimensions="2">
-        <use-data name="Color"/>
-    </mesh>
-
-    <mesh name="Popular-Mesh" dimensions="2">
-        <use-data name="Color"/>
-    </mesh>
-
     <mesh name="Incinerator-Mesh" dimensions="2">
         <use-data name="Color"/>
     </mesh>
@@ -47,21 +39,8 @@
 
     <participant name="Generator">
         <provide-mesh name="Generator-Mesh"/>
-        <provide-mesh name="Popular-Mesh"/>
         <receive-mesh name="Propagator-Mesh" from="Propagator"/>
-        <!-- Mapping on unclaimed mesh -->
-        <mapping:nearest-neighbor
-                direction="write"
-                to="Forsaken-Mesh"
-                from="Generator-Mesh"
-                constraint="conservative"/>
-        <!-- JIT Mapping with mesh provided multiple times-->
-        <mapping:nearest-neighbor
-            direction="read"
-            from="Popular-Mesh"
-            constraint="consistent"/>
         <write-data name="Color" mesh="Generator-Mesh"/>
-        <read-data name="Color" mesh="Popular-Mesh"/>
     </participant>
 
     <participant name="Propagator">
@@ -118,7 +97,6 @@
     </participant>
 
     <participant name="Incinerator">
-        <provide-mesh name="Popular-Mesh"/>
         <provide-mesh name="Incinerator-Mesh"/>
         <provide-mesh name="Impostor-Mesh"/>
         <receive-mesh name="Propagator-Mesh" from="Propagator" api-access="1"/>

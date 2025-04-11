@@ -43,10 +43,6 @@ def test_mapping():
                 m_elevator = node
             elif node.name == "Incinerator-Mesh":
                 m_incinerator = node
-            elif node.name == "Forsaken-Mesh":
-                m_forsaken = node
-            elif node.name == "Popular-Mesh":
-                m_popular = node
             elif node.name == "Impostor-Mesh":
                 m_impostor = node
 
@@ -73,10 +69,6 @@ def test_mapping():
         m.MissingExchangeMappingViolation(p_elevator, p_instigator, m_instigator, Direction.READ),
 
         m.IncorrectExchangeMappingViolation(p_incinerator, p_propagator, m_propagator, Direction.READ),
-
-        m.UnclaimedMeshMappingViolation(p_generator, m_forsaken, Direction.WRITE),
-
-        m.RepeatedlyClaimedMeshMappingViolation(p_generator, [p_generator, p_incinerator], m_popular, Direction.READ),
 
         m.SameParticipantMappingViolation(p_incinerator, m_incinerator, Direction.READ),
 
