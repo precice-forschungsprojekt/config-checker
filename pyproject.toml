@@ -15,6 +15,13 @@ dependencies = [
 Repository = "https://github.com/precice-forschungsprojekt/config-checker.git"
 Issues = "https://github.com/precice-forschungsprojekt/config-checker/issues"
 
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+precice-config-checker = "preciceconfigchecker.cli:main"
+
 [tool.setuptools]
 packages = ["preciceconfigchecker"]
 
