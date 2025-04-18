@@ -72,16 +72,16 @@ config-checker
 
 ## Checking a preCICE config
 
-To check a preCICE configuration file for logical errors, run the following within the root of this repository:
+To check a preCICE configuration file for logical errors, run the following:
 
 ```bash
-python -m preciceconfigchecker.cli "path/to/precice-config.xml"
+precice-config-checker "path/to/precice-config.xml"
 ```
 
 If you want more information about the checks that were performed and their results, use
 
 ```bash
-python -m preciceconfigchecker.cli "path/to/precice-config.xml" --debug
+precice-config-checker "path/to/precice-config.xml" --debug
 ```
 
 ## Suggesting new Rules
